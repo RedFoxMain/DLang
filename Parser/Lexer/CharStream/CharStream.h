@@ -13,10 +13,11 @@ public:
 
 public:
 	CharStream() = default;
-	void initStream(const char* str, const char* file="<stdin>"); // Init stream
+	void initStream(const std::string& str, const char* file="<stdin>"); // Init stream
 	void advance(int step = 1); // Move to next char
 	void skipComments(); // Skip the comments
 	void skipSpace(); // Skip space
+	void resetLine(); // Increase line and reset column
 	char getCurrentChar(); // Get current char
 	char peekNextChar(); // Get next char
 	bool currentCharEqual(int code); // Is current char equal ascii code of symbol

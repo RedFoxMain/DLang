@@ -2,22 +2,26 @@
 #include "../../Error/Error.h"
 
 // Return char stream for LexicalError class
-CharStream Lexer::returnStream() { return stream_; }
+CharStream& Lexer::returnStream() { return stream_; }
 
 // get block of code from { }
 void Lexer::getBlockOfCode() {
-	// TODO: implement this method
+	// TODO: Bug here
 	state_ = LexerState::LINE;
 	int brace_count = 1;
 	std::string text;
 	Lexer lexer;
+	lexer.returnStream().resetLine();
 	std::vector<Token*> temp;
 	while (brace_count > 0) {
 		std::string line;
 		std::cout << "...";
 		std::getline(std::cin, line);
-		if (line.empty()) continue;
-		lexer.initLexer(line.c_str(), file_name.c_str());
+		if (line.empty()) {
+			lexer.returnStream().resetLine();
+			continue;
+		}
+		lexer.initLexer(line, file_name.c_str());
 		char symbol = line[line.size()-1];
 		if (symbol == TokenCode::LFPAREN_CODE) brace_count++;
 		if (symbol == TokenCode::RFPAREN_CODE) brace_count--;
@@ -25,10 +29,11 @@ void Lexer::getBlockOfCode() {
 		temp = lexer.getListOfTokens();
 	}
 	token_list_.insert(token_list_.end(), temp.begin(), temp.end()-1);
+	lexer.clear();
 }
 
 // Initialize the lexer
-void Lexer::initLexer(const char* code, const char* file) { 
+void Lexer::initLexer(const std::string& code, const char* file) {
 	stream_.initStream(code, file);
 	file_name = file;
 }

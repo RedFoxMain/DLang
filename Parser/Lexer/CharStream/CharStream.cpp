@@ -5,10 +5,10 @@
 char CharStream::getCurrentChar() { return current_char; }
 
 // Initialize the char stream
-void CharStream::initStream(const char* str, const char* file) {
-	this->code = "";
+void CharStream::initStream(const std::string& str, const char* file) {
+	this->code = str;
 	this->file = file;
-	line++; column = -1; 
+	resetLine();
 	advance(); 
 }
 
@@ -51,4 +51,9 @@ void CharStream::skipComments() {
 // Skip space
 void CharStream::skipSpace() { 
 	while (isSpace()) { advance(); } 
+}
+
+// Increase line and reset column
+void CharStream::resetLine() {
+	line++; column = -1;
 }

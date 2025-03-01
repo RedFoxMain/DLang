@@ -20,7 +20,7 @@ public:
 
 	// Execute code from text
 	static void exec(const std::string& code, const char* file_name = "<stdin>", ASTPrinter* printer = nullptr) {
-		lexer.initLexer(code.c_str(), file_name);
+		lexer.initLexer(code, file_name);
 		try {
 			for (Token* tk : lexer.getListOfTokens()) {
 				if (tk) { std::cout << tk->value << std::endl; }
