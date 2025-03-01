@@ -59,5 +59,6 @@ public:
 	void initLexer(const char* code, const char* file="<stdin>"); // Initialize the lexer
 	CharStream returnStream(); // Return stream for LexicalError class
 	std::vector<Token*> getListOfTokens();
+	std::string file_name;
 };
 #endif // !LEXER_H

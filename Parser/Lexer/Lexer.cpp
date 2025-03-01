@@ -8,11 +8,29 @@ CharStream Lexer::returnStream() { return stream_; }
 void Lexer::getBlockOfCode() {
 	// TODO: implement this method
 	state_ = LexerState::LINE;
+	int brace_count = 1;
+	std::string text;
+	Lexer lexer;
+	std::vector<Token*> temp;
+	while (brace_count > 0) {
+		std::string line;
+		std::cout << "...";
+		std::getline(std::cin, line);
+		if (line.empty()) continue;
+		lexer.initLexer(line.c_str(), file_name.c_str());
+		char symbol = line[line.size()-1];
+		if (symbol == TokenCode::LFPAREN_CODE) brace_count++;
+		if (symbol == TokenCode::RFPAREN_CODE) brace_count--;
+
+		temp = lexer.getListOfTokens();
+	}
+	token_list_.insert(token_list_.end(), temp.begin(), temp.end()-1);
 }
 
 // Initialize the lexer
 void Lexer::initLexer(const char* code, const char* file) { 
 	stream_.initStream(code, file);
+	file_name = file;
 }
 
 // Key in resreved words?
