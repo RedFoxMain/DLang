@@ -22,6 +22,13 @@ bool CharStream::currentCharEqual(int code) {
 	return current_char == code;
 }
 
+// check if current char in list of chars
+bool CharStream::currcharInList(std::vector<int> list) {
+	for (const auto& el : list)
+		if (currentCharEqual(el)) return true;
+	return false;
+}
+
 // Is next char equal ascii code of symbol
 bool CharStream::nextCharEqual(int code) { 
 	return peekNextChar() == code; 

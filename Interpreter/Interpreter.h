@@ -26,9 +26,9 @@ public:
 				if (tk) { std::cout << tk->value << std::endl; }
 			}
 			//AST* ast = parser.parse(lexer.getListOfTokens());
-			lexer.clear();
 			//if (printer) { printer->print(ast); }
 		} catch (const std::exception& e) { std::cout << e.what() << "\n"; }
+		lexer.clear();
 	}
 };
 #endif // !INTERPRETER_H

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <cctype>
+#include <vector>
 
 class CharStream {
 public:
@@ -24,5 +25,6 @@ public:
 	bool nextCharEqual(int code); // Is next char equal ascii code of symbol
 	bool hasNext(); // Check if line is not ended
 	bool isSpace(); // Is current char is space
+	bool currcharInList(std::vector<int> list); // check if current char in list of char
 };
 #endif // !CHAR_STREAM_H

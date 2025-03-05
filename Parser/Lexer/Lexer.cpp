@@ -1,12 +1,13 @@
 #include "Lexer.h"
 #include "../../Error/Error.h"
 
+// TODO: For some reason, the lexer perceives ( ) as a start of if block
+
 // Return char stream for LexicalError class
 CharStream& Lexer::returnStream() { return stream_; }
 
 // get block of code from { }
 void Lexer::getBlockOfCode() {
-	// TODO: Bug here
 	state_ = LexerState::LINE;
 	int brace_count = 1;
 	std::string text;
@@ -91,15 +92,19 @@ Token* Lexer::getString() {
 // Lex symbols
 Token* Lexer::getSymbol() {
 	Token* token;
-	if (((stream_.currentCharEqual(TokenCode::LESS_CODE) || 
-		stream_.currentCharEqual(TokenCode::GREATER_CODE) ||
-		stream_.currentCharEqual(TokenCode::EQUAL_CODE) ||
-		stream_.currentCharEqual(TokenCode::NOT_CODE) ||
-		stream_.currentCharEqual(TokenCode::PLUS_CODE) ||
-		stream_.currentCharEqual(TokenCode::MINUS_CODE) ||
-		stream_.currentCharEqual(TokenCode::SLASH_CODE) ||
-		stream_.currentCharEqual(TokenCode::MULTIPLY_CODE)) && stream_.nextCharEqual(TokenCode::EQUAL_CODE)) ||
-		(stream_.currentCharEqual(TokenCode::LOGIC_AND_CODE) && stream_.nextCharEqual(TokenCode::LOGIC_AND_CODE) ||
+	// <= >= == != += -= /= *= 
+	if (stream_.currcharInList({ 
+		TokenCode::LESS_CODE, TokenCode::GREATER_CODE, TokenCode::EQUAL_CODE, 
+		TokenCode::NOT_CODE, TokenCode::PLUS_CODE, TokenCode::MINUS_CODE,
+		TokenCode::SLASH_CODE, TokenCode::MULTIPLY_CODE
+		}) && stream_.nextCharEqual(TokenCode::EQUAL_CODE)){
+		std::string symbol = std::string(1, stream_.getCurrentChar()) + stream_.peekNextChar();
+		token = new Token(stream_.line, stream_.column - 1, resreved_binary_operation_.at(symbol), symbol);
+		stream_.advance(2);
+	}
+
+	// && ||
+	else if ((stream_.currentCharEqual(TokenCode::LOGIC_AND_CODE) && stream_.nextCharEqual(TokenCode::LOGIC_AND_CODE) ||
 		(stream_.currentCharEqual(TokenCode::LOGIC_OR_CODE) && stream_.nextCharEqual(TokenCode::LOGIC_OR_CODE)))) {
 		std::string symbol = std::string(1, stream_.getCurrentChar()) + stream_.peekNextChar();
 		token = new Token(stream_.line, stream_.column - 1, resreved_binary_operation_.at(symbol), symbol);
