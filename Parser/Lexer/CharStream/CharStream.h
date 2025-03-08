@@ -9,12 +9,11 @@ class CharStream {
 public:
 	size_t line = 0, column = -1;
 	std::string code;
-	std::string file;
 	char current_char;	
 
 public:
 	CharStream() = default;
-	void initStream(const std::string& str, const char* file="<stdin>"); // Init stream
+	void initStream(const std::string& str); // Init stream
 	void advance(int step = 1); // Move to next char
 	void skipComments(); // Skip the comments
 	void skipSpace(); // Skip space

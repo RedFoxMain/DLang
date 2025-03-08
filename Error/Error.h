@@ -14,7 +14,7 @@ private:
 
 public:
 	LexicalError(Lexer& lexer) {
-		this->message_ = "LexicalError(" + lexer.returnStream().file + "): " + lexer.returnStream().code + "\nUnknown symbol (" 
+		this->message_ = "LexicalError(" + lexer.file_name + "): " + lexer.returnStream().code + "\nUnknown symbol (" 
 			+ lexer.returnStream().current_char 
 			+ ") in " + std::to_string(lexer.returnStream().line) + ":" + std::to_string(lexer.returnStream().column);
 	}

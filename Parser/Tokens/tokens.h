@@ -16,6 +16,7 @@ enum TokenType {
 };
 
 enum TokenCode {
+	EOF_CODE = 0,
 	SEMICOLON_CODE = 59,
 	COLON_CODE = 58,
 	QUOTE_CODE = 34,

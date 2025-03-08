@@ -5,9 +5,8 @@
 char CharStream::getCurrentChar() { return current_char; }
 
 // Initialize the char stream
-void CharStream::initStream(const std::string& str, const char* file) {
+void CharStream::initStream(const std::string& str) {
 	this->code = str;
-	this->file = file;
 	resetLine();
 	advance(); 
 }

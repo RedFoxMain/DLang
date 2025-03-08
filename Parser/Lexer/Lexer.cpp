@@ -1,8 +1,6 @@
 #include "Lexer.h"
 #include "../../Error/Error.h"
 
-// TODO: For some reason, the lexer perceives ( ) as a start of if block
-
 // Return char stream for LexicalError class
 CharStream& Lexer::returnStream() { return stream_; }
 
@@ -35,7 +33,7 @@ void Lexer::getBlockOfCode() {
 
 // Initialize the lexer
 void Lexer::initLexer(const std::string& code, const char* file) {
-	stream_.initStream(code, file);
+	stream_.initStream(code);
 	file_name = file;
 }
 
@@ -111,7 +109,7 @@ Token* Lexer::getSymbol() {
 		stream_.advance(2);
 	}
 	else {
-		if (stream_.currentCharEqual(TokenType::LFPAREN)) { state_ = LexerState::IN_BLOCK; }
+		if (stream_.currentCharEqual(TokenCode::LFPAREN_CODE) && stream_.nextCharEqual(TokenCode::EOF_CODE)) state_ = LexerState::IN_BLOCK;
 		token = new Token(stream_.line, stream_.column - 1, reserved_symbols.at(stream_.getCurrentChar()), std::string(1, stream_.getCurrentChar()));
 		stream_.advance();
 	}
