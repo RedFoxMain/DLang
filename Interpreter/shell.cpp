@@ -3,12 +3,12 @@
 #include "interpreter.h"
 #include "../Error/error.h"
 
-std::vector<std::string> readFromFile(const std::string& file_name) {
-	std::vector<std::string> temp;
+std::string readFromFile(const std::string& file_name) {
+	std::string temp;
 	std::ifstream file(file_name);
 	std::string line;
 	while (std::getline(file, line))
-		temp.push_back(line);
+		temp += line + "\n";
 	return temp;
 }
 

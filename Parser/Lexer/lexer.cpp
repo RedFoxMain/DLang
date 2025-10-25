@@ -94,13 +94,8 @@ Token* Lexer::getToken() {
 }
 
 // Main function
-std::vector<Token*> Lexer::lex(const std::vector<std::string> code, const char* file) {
-	std::string line;
-	for (std::string str: code) {
-		line += str + "\n";
-	}
-	//std::cout << line;
-	this->stream.initStream(line);
+std::vector<Token*> Lexer::lex(const std::string& code, const char* file) {
+	this->stream.initStream(code);
 	this->file_name = file;
 	m_tokens.clear();
 	Token* token = getToken();

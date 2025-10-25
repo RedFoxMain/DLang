@@ -54,6 +54,6 @@ private:
 
 public:
 	Lexer() = default;
-	std::vector<Token*> lex(const std::vector<std::string> code, const char* file = "<stdin>"); // get list of tokens
+	std::vector<Token*> lex(const std::string& code, const char* file = "<stdin>"); // get list of tokens
 };
 #endif // !LEXER_H
