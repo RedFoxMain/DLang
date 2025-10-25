@@ -1,0 +1,33 @@
+#include <iostream>
+#include <fstream>
+#include "interpreter.h"
+#include "../Error/error.h"
+
+std::vector<std::string> readFromFile(const std::string& file_name) {
+	std::vector<std::string> temp;
+	std::ifstream file(file_name);
+	std::string line;
+	while (std::getline(file, line))
+		temp.push_back(line);
+	return temp;
+}
+
+int main() {
+	Lexer lexer;
+	Parser parser;
+	ASTPrinter printer;
+
+	try {
+		std::vector<Token*> tokens = lexer.lex(readFromFile("file_path"));
+		std::vector<AST*> data = parser.parse(tokens);
+		for (AST* ast : data) if (ast) printer.print(ast);
+	}
+	catch (LexicalError& err) {
+		std::cout << err.what() << "\n";
+	}
+	catch (SyntaxError& err) {
+		std::cout << err.what() << "\n";
+	}
+	
+	return 0;
+}

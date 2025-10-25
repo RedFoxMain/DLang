@@ -1,0 +1,38 @@
+// - Line Comment
+
+1. Variable assigment
+1. [var | const] id: type = expr;
+	1. 1. [var | const] id: type;
+		  id [= | += | -= | *= | /=] expr;
+
+
+2. Conditional operator if/else
+if(condition){ 
+	code or nothing 
+}
+else{ 
+	code or nothing 
+}
+
+
+3. Loops for/foreach/while
+for(id: type in range(n)){ 
+	code or nothing 
+}
+
+1. var id: type; 
+   foreach(id in ...){ 
+       code or nothing 
+   }
+1. 1. foreach(id: type in ...){ 
+	code or nothing 
+}
+
+while(condition) { 
+	code or nothing 
+}
+
+4. Functions
+func func_name(param1: type, ...) -> return_type{ 
+	code or nothing 
+}
