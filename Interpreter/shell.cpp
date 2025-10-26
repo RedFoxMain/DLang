@@ -6,6 +6,7 @@
 std::string readFromFile(const std::string& file_name) {
 	std::string temp;
 	std::ifstream file(file_name);
+	if (!file.is_open()) std::cerr << "Cant't find file: " << file_name << std::endl;
 	std::string line;
 	while (std::getline(file, line))
 		temp += line + "\n";
@@ -22,12 +23,8 @@ int main() {
 		std::vector<AST*> data = parser.parse(tokens);
 		for (AST* ast : data) if (ast) printer.print(ast);
 	}
-	catch (LexicalError& err) {
-		std::cout << err.what() << "\n";
+	catch (std::exception& err) {
+		std::cout << err.what();
 	}
-	catch (SyntaxError& err) {
-		std::cout << err.what() << "\n";
-	}
-	
 	return 0;
 }
