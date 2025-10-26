@@ -86,7 +86,8 @@ Token* Lexer::getToken() {
 			if (std::isdigit(stream.current_char) || stream.currentCharEqual(TokenCode::DOT_CODE)) { return getNum(); }
 			if (stream.currentCharEqual(TokenCode::QUOTE_CODE)) { return getString(); }
 			if (isReservedSymbol(stream.current_char)) { return getSymbol(); }
-			else { stream.advance(); continue; }
+			if (stream.isEndOfString()) stream.advance();
+			else { raiseError(std::format("LEXICAL ERROR: Unknown token {} in line {}\n", stream.current_char, stream.line)); }
 			stream.advance();
 		}
 	}
