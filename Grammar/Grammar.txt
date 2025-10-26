@@ -16,7 +16,7 @@ else{
 
 
 3. Loops for/foreach/while
-for(id: type in range(n)){ 
+for(var id: type in range(n)){ 
 	code or nothing 
 }
 
@@ -24,7 +24,7 @@ for(id: type in range(n)){
    foreach(id in ...){ 
        code or nothing 
    }
-1. 1. foreach(id: type in ...){ 
+1. 1. foreach(var id: type in ...){ 
 	code or nothing 
 }
 
@@ -33,6 +33,6 @@ while(condition) {
 }
 
 4. Functions
-func func_name(param1: type, ...) -> return_type{ 
+func func_name(var param1: type, ...) -> return_type{ 
 	code or nothing 
 }
