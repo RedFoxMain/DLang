@@ -27,6 +27,7 @@ public:
 	bool isSpace(); // Is current char is space
 	bool isDigit(); // Is current char is digit
 	bool isAlpha(); // Is current char is alpha
+	bool isEndOfString(); // Is current char is \0
 	bool currcharInList(std::vector<int> list); // check if current char in list of char
 };
 #endif // !CHAR_STREAM_H

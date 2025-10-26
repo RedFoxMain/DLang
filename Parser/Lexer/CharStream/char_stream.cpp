@@ -4,7 +4,7 @@
 // Initialize the char stream
 void CharStream::initStream(const std::string& str) {
 	this->code = str;
-	this->line++;
+	this->line = 1;
 	this->column = -1;
 	advance(); 
 }
@@ -53,15 +53,20 @@ bool CharStream::isAlpha() {
 	return std::isalpha(current_char);
 }
 
+bool CharStream::isEndOfString() {
+	return current_char == '\0';
+}
+
 // Next char
 void CharStream::advance(int step) {
 	column += step;
 	current_char = (column < code.length()) ? code[column] : '\0';
+	if (current_char == '\n') ++line;
 }
 
 // Skip the comments
 void CharStream::skipComments() { 
-	while (hasNext()) advance();
+	while (hasNext() && current_char != '\n') advance();
 }
 
 // Skip space
