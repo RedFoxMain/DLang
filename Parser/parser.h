@@ -8,7 +8,7 @@ private:
 	int current_token_pos_ = 0;
 	bool error_occured_ = false;
 	std::vector<Token*> tokens_;
-	Token* current_token_;
+	Token* m_current_token;
 
 private:
 	bool match(TokenType type); // Match current token
@@ -21,17 +21,19 @@ private:
 	AST* term();
 	AST* expr();
 
-	Id* parseVariable(); // Parse variable names
+	IdNode* parseVariable(); // Parse variable names
 	AST* parseVarDeclaration(); // Parse variable declaration
-	ReasignVar* parseVarReasign(); // Parse var reasigment
-	If* parseIf(); // Parse if statement
-	BlockOfCode* parseListOfCode(); // Parse list of code
+	ReasignVarNode* parseVarReasign(); // Parse var reasigment
+	IfStmtNode* parseIf(); // Parse if statement
+	WhileStmtNode* parseWhile(); // Parse if statement
+	BlockOfCodeNode* parseListOfCode(); // Parse list of code
+	ArrayNode* parseArray();
 	std::vector<AST*> parseStatement(bool if_block = false); // Main function
 
 public:
 	Parser() = default;
 	std::vector<AST*> parse(std::vector<Token*> token_list);
-	Token* returnCurrToken() { return current_token_; }
+	Token* returnCurrToken() { return m_current_token; }
 	Token* getPrevious(); // Get previous token
 };
 #endif // !PARSER_H

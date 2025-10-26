@@ -5,36 +5,39 @@
 std::vector<AST*> Parser::parse(std::vector<Token*> token_list) {
 	tokens_ = std::move(token_list);
 	current_token_pos_ = 0; // Set current pos of token in tokens list
-	current_token_ = tokens_[current_token_pos_]; // Set first token
+	m_current_token = tokens_[current_token_pos_]; // Set first token
 	return parseStatement();
 }
 
 std::vector<AST*> Parser::parseStatement(bool if_block) {
 	std::vector<AST*> ast;
-	while (current_token_->type != TokenType::END_OF_FILE) {
-		if (if_block && current_token_->type == RFPAREN) break;
-		if (current_token_->value == "var" || current_token_->value == "const") { ast.push_back(parseVarDeclaration()); }
+	while (m_current_token->type != TokenType::END_OF_FILE) {
+		if (if_block && m_current_token->type == RFPAREN) break;
+		if (m_current_token->value == "var" || m_current_token->value == "const") { ast.push_back(parseVarDeclaration()); }
 		if (match(TokenType::ID)) { ast.push_back(parseVarReasign()); }
-		if (current_token_->value == "if") { consume(TokenType::IF_KEYWORD);  ast.push_back(parseIf()); }
+		if (m_current_token->value == "if") { consume(TokenType::IF_KEYWORD);  ast.push_back(parseIf()); }
+		if (m_current_token->value == "while") { consume(TokenType::WHILE_KEYWORD);  ast.push_back(parseWhile()); }
 	}
 	return ast;
 }
 
 // Check current token
 bool Parser::match(TokenType type) {
-	if (current_token_->type != type) { return false; }
+	if (m_current_token->type != type) { return false; }
 	return true;
 }
 
 // Get current token
 bool Parser::isEndOfFile() {
-	return current_token_->type == TokenType::END_OF_FILE;
+	return m_current_token->type == TokenType::END_OF_FILE;
 }
 
 // Apply current token
 void Parser::consume(TokenType type) {
-	if (isEndOfFile() || !match(type)) { throw SyntaxError(*this);  }
-	current_token_ = advance();
+	if (isEndOfFile() || !match(type)) {
+		raiseError(std::format("SYNTAX ERROR: Unexpected Token {} in line: {}\n", m_current_token->value, m_current_token->line));
+	}
+	m_current_token = advance();
 }
 
 // Return previous token
@@ -51,30 +54,36 @@ Token* Parser::advance() {
 AST* Parser::factor() {
 	AST* ast = nullptr;
 	if (match(TokenType::INT)) { 
-		ast = new Int(current_token_); consume(TokenType::INT);  
+		ast = new IntNode(m_current_token); consume(TokenType::INT);
 		return ast; 
 	}
 	if (match(TokenType::STRING)) { 
-		ast = new Str(current_token_); consume(TokenType::STRING); 
+		ast = new StrNode(m_current_token); consume(TokenType::STRING);
 		return ast; 
 	}
 	if (match(TokenType::FLOAT)) { 
-		ast = new Float(current_token_); consume(TokenType::FLOAT); 
+		ast = new FloatNode(m_current_token); consume(TokenType::FLOAT);
 		return ast; 
 	}
 	if (match(TokenType::LRPAREN)) { 
 		consume(TokenType::LRPAREN); ast = expr(); consume(TokenType::RRPAREN); 
 		return ast; 
 	}
-	if (match(TokenType::ID)) { return parseVariable(); }
+	if (match(TokenType::LSPAREN)) return parseArray();
+	if (match(TokenType::ID)) return parseVariable();
 	if (match(TokenType::MINUS)) {  
-		Token* token = current_token_; 
-		consume(TokenType::MINUS); ast = new UnOp(token, factor()); 
+		Token* token = m_current_token; 
+		consume(TokenType::MINUS); ast = new UnOpNode(token, factor());
 		return ast; 
 	}
 	if (match(TokenType::PLUS)) { 
-		Token* token = current_token_; 
-		consume(TokenType::PLUS); ast = new UnOp(token, factor()); 
+		Token* token = m_current_token; 
+		consume(TokenType::PLUS); ast = new UnOpNode(token, factor());
+		return ast;
+	}
+	if (match(TokenType::INCREMENT)) {
+		Token* token = m_current_token;
+		consume(TokenType::INCREMENT); ast = new UnOpNode(token, factor());
 		return ast;
 	}
 	return ast;
@@ -86,7 +95,7 @@ AST* Parser::term() {
 		match(TokenType::GREATER_EQUAL) || match(TokenType::LESS_EQUAL) ||
 		match(TokenType::EQUAL_EQUAL) || match(TokenType::NOT_EQUAL) ||
 		match(TokenType::LESS) || match(TokenType::GREATER)) {
-		Token* token = current_token_;
+		Token* token = m_current_token;
 		if (match(TokenType::MULTIPLY)) { consume(TokenType::MULTIPLY); }
 		if (match(TokenType::DIVIDE)) { consume(TokenType::DIVIDE); }
 
@@ -97,7 +106,7 @@ AST* Parser::term() {
 		if (match(TokenType::LESS_EQUAL)) { consume(TokenType::LESS_EQUAL); }
 		if (match(TokenType::NOT_EQUAL)) { consume(TokenType::NOT_EQUAL); }
 		if (match(TokenType::EQUAL_EQUAL)) { consume(TokenType::EQUAL_EQUAL); }
-		ast = new BinOp(ast, token, factor());
+		ast = new BinOpNode(ast, token, factor());
 	}
 	return ast;
 }
@@ -106,22 +115,22 @@ AST* Parser::expr() {
 	AST* ast = term();
 	while (match(TokenType::PLUS) || match(TokenType::MINUS) ||
 		match(TokenType::LOGIC_AND) || match(TokenType::LOGIC_OR)) {
-		Token* token = current_token_;
+		Token* token = m_current_token;
 		if (match(TokenType::PLUS)) { consume(TokenType::PLUS); }
 		if (match(TokenType::MINUS)) { consume(TokenType::MINUS); }
 
 		if (match(TokenType::LOGIC_AND)) { consume(TokenType::LOGIC_AND); }
 		if (match(TokenType::LOGIC_OR)) { consume(TokenType::LOGIC_OR); }
-		ast = new BinOp(ast, token, term());
+		ast = new BinOpNode(ast, token, term());
 	}
 	return ast;
 }
 
 // Parse variable names
-Id* Parser::parseVariable() {
-	Id* ast = nullptr;
+IdNode* Parser::parseVariable() {
+	IdNode* ast = nullptr;
 	if (match(TokenType::ID)) {
-		ast = new Id(current_token_);
+		ast = new IdNode(m_current_token);
 		consume(TokenType::ID);
 	}
 	return ast;
@@ -132,42 +141,42 @@ AST* Parser::parseVarDeclaration() {
 	AST* ast = nullptr;
 	
 	// Get var or const keyword
-	Token* key_word = current_token_;
+	Token* key_word = m_current_token;
 	switch (key_word->type) {
 		case TokenType::VAR_KEYWORD:
 		case TokenType::CONST_KEYWORD:
-			consume(current_token_->type);
+			consume(m_current_token->type);
 	}
 	
 	// Get vriable name
-	Id* id = parseVariable();
+	IdNode* id = parseVariable();
 	
 	// Get type assign operator
-	Token* var_assign_op = current_token_;
+	Token* var_assign_op = m_current_token;
 	consume(TokenType::COLON);
 	
 	// Get variable type
-	Token* var_type = current_token_;
+	Token* var_type = m_current_token;
 	consume(TokenType::VARIABLE_TYPE);
 	
 	// If current token is SEMICOLON create empty variable declaration node
 	if (match(TokenType::SEMICOLON)) { 
-		ast = new EmptyVarDecl(key_word, id, var_assign_op, var_type); 
+		ast = new EmptyVarDeclNode(key_word, id, var_assign_op, var_type);
 	}else { // Else create full variable declaration node
-		Token* assign = current_token_;
+		Token* assign = m_current_token;
 		consume(TokenType::EQUAL);
-		ast = new FullVarDecl(new EmptyVarDecl(key_word, id, var_assign_op, var_type), assign, expr());
+		ast = new FullVarDeclNode(new EmptyVarDeclNode(key_word, id, var_assign_op, var_type), assign, expr());
 	}
 	consume(TokenType::SEMICOLON);
 	return ast;
 }
 
 // Parse var reasigment
-ReasignVar* Parser::parseVarReasign() {
-	Id* id = parseVariable(); // Get variable name
+ReasignVarNode* Parser::parseVarReasign() {
+	IdNode* id = parseVariable(); // Get variable name
 	
 	// Get expression assign operator
-	Token* assign = current_token_;
+	Token* assign = m_current_token;
 	switch (assign->type) {
 		case TokenType::EQUAL:
 		case TokenType::PLUS_EQUAL:
@@ -178,21 +187,43 @@ ReasignVar* Parser::parseVarReasign() {
 	}
 	AST* expression = expr();
 	consume(TokenType::SEMICOLON);
-	return new ReasignVar(id, assign, expression);
+	return new ReasignVarNode(id, assign, expression);
 }
 
 // Parse list of code
-BlockOfCode* Parser::parseListOfCode() {
+BlockOfCodeNode* Parser::parseListOfCode() {
 	consume(TokenType::LFPAREN);
 	std::vector<AST*> list = parseStatement(true);
 	consume(TokenType::RFPAREN);
-	return new BlockOfCode(list);
+	return new BlockOfCodeNode(list);
+}
+
+ArrayNode* Parser::parseArray() {
+	consume(TokenType::LSPAREN);
+	std::vector<Token*> temp;
+	while (m_current_token) {
+		temp.push_back(m_current_token);
+		m_current_token = advance();
+		if (match(TokenType::RSPAREN)) {
+			consume(TokenType::RSPAREN);
+			break;
+		}
+		consume(TokenType::COMMA);
+	}
+	return new ArrayNode(temp);
 }
 
 // Parse if statement
-If* Parser::parseIf() {
+IfStmtNode* Parser::parseIf() {
 	consume(TokenType::LRPAREN);
 	AST* condition = expr();
 	consume(TokenType::RRPAREN);
-	return new If(condition, parseListOfCode());
+	return new IfStmtNode(condition, parseListOfCode());
+}
+
+WhileStmtNode* Parser::parseWhile() {
+	consume(TokenType::LRPAREN);
+	AST* condition = expr();
+	consume(TokenType::RRPAREN);
+	return new WhileStmtNode(condition, parseListOfCode());
 }
