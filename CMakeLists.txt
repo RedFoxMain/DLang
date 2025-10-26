@@ -1,23 +1,27 @@
 ﻿cmake_minimum_required (VERSION 3.8)
 set(CXX_STANDARD 17)
+set(CXX_STANDARD_REQUIRED ON)
 
 project("DLang")
-set(PROJECT_NAME "DLang")
 
-# The folders where the files are located
-set( FLDS_NAMES
-	"Parser/Lexer/CharStream" "Parser/Tokens" "Parser/Lexer" "Parser/AST"
-	"Parser" "Error" "Interpreter"
+set( INCLUDE_FILES
+	"Interpreter/interpreter.h"
+	"Object/Array/darray.h"
+	"Parser/AST/ast.h"
+	"Parser/AST/ast_printer.h"
+	"Parser/Lexer/CharStream/char_stream.h"
+	"Parser/Lexer/lexer.h"
+	"Parser/Tokens/tokens.h"
+	"Parser/parser.h"
+	
 )
 
-# List for file to compile
-set( FILE_TO_COMPILE )
-
-foreach(fld_name ${FLDS_NAMES})
-	file(GLOB_RECURSE CPP_FILES ${CMAKE_CURRENT_SOURCE_DIR}/${fld_name}/*.cpp)
-	file(GLOB_RECURSE HEADER_FILES ${CMAKE_CURRENT_SOURCE_DIR}/${fld_name}/*.h)
-	list(APPEND FILE_TO_COMPILE ${CPP_FILES} )
-	list(APPEND FILE_TO_COMPILE ${HEADER_FILES})
-endforeach()
-
-add_executable(${PROJECT_NAME} ${FILE_TO_COMPILE})
+set( SRC_FILES
+	"Interpreter/shell.cpp"
+	"Object/Array/darray.cpp"
+	"Parser/Lexer/CharStream/char_stream.cpp"
+	"Parser/Lexer/lexer.cpp"
+	"Parser/parser.cpp"
+)
+add_executable(${PROJECT_NAME} ${SRC_FILES} ${INCLUDE_FILES})
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
