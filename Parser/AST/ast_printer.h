@@ -2,40 +2,47 @@
 #define AST_PRINTER_H
 
 #include <iostream>
-#include "AST.h"
+#include "ast.h"
 
 class ASTPrinter: public PrintVisitor {
 private:
 	// Print Int node
-	std::stringstream visit(Int* node, int deep) override{
+	std::stringstream visit(IntNode* node, int deep) override{
 		std::stringstream stream;
 		stream << "IntNode(" << ((node) ? std::to_string(node->value) : "null") << ")";
 		return stream;
 	}
 
 	// Print Float node
-	std::stringstream visit(Float* node, int deep) override {
+	std::stringstream visit(FloatNode* node, int deep) override {
 		std::stringstream stream;
 		stream << "FloatNode(" << ((node) ? std::to_string(node->value) : "null") << ")";
 		return stream;
 	}
 
 	// Print String node
-	std::stringstream visit(Str* node, int deep) override {
+	std::stringstream visit(StrNode* node, int deep) override {
 		std::stringstream stream;
 		stream << "StrNode(" << ((node) ? node->value : "null") << ")";
 		return stream;
 	}
 
+	// Print Array node
+	std::stringstream visit(ArrayNode* node, int deep) override {
+		std::stringstream stream;
+		if (node) stream << "ArrayNode(" << node->array.stringRepresentation() << ")";
+		return stream;
+	}
+
 	// Print Identifiers node
-	std::stringstream visit(Id* node, int deep) override {
+	std::stringstream visit(IdNode* node, int deep) override {
 		std::stringstream stream;
 		stream << "IdNode(" << ((node) ? node->identifier->value : "null") << ")";
 		return stream;
 	}
 
 	// Print Unary operation node
-	std::stringstream visit(UnOp* node, int deep) override {
+	std::stringstream visit(UnOpNode* node, int deep) override {
 		std::stringstream stream;
 		stream << "UnOpNode ->\n";
 		deep += 3;
@@ -45,7 +52,7 @@ private:
 	}
 
 	// Print Binary operation node
-	std::stringstream visit(BinOp* node, int deep) override {
+	std::stringstream visit(BinOpNode* node, int deep) override {
 		std::stringstream stream;
 		stream << "BinOpNode ->\n";
 		deep += 3;
@@ -57,7 +64,7 @@ private:
 	}
 
 	// Print Empty variable declaration node ( key id: type; )
-	std::stringstream visit(EmptyVarDecl* node, int deep) override {
+	std::stringstream visit(EmptyVarDeclNode* node, int deep) override {
 		std::stringstream stream;
 		stream << "EmptyVarDeclNode ->\n";
 		deep += 3;
@@ -71,7 +78,7 @@ private:
 	}
 
 	// Print Full variable declaration node ( key id: type = expr; )
-	std::stringstream visit(FullVarDecl* node, int deep) override {
+	std::stringstream visit(FullVarDeclNode* node, int deep) override {
 		std::stringstream stream;
 		stream << "FullVarDeclNode ->\n";
 		deep += 3;
@@ -84,7 +91,7 @@ private:
 	}
 
 	// Print variable reasigment node ( id = expr; || id [+ - * /]= expr; )
-	std::stringstream visit(ReasignVar* node, int deep) override {
+	std::stringstream visit(ReasignVarNode* node, int deep) override {
 		std::stringstream stream;
 		stream << "ReasignNode ->\n";
 		deep += 3;
@@ -97,7 +104,7 @@ private:
 	}
 
 	// Print list of statement
-	std::stringstream visit(BlockOfCode* node, int deep) override {
+	std::stringstream visit(BlockOfCodeNode* node, int deep) override {
 		std::stringstream stream;
 		stream << "StmtListNode ->\n";
 		deep += 3;
@@ -109,14 +116,30 @@ private:
 	}
 
 	// Print if statement node
-	std::stringstream visit(If* node, int deep) override {
+	std::stringstream visit(IfStmtNode* node, int deep) override {
 		std::stringstream stream;
 		stream << "IfNode ->\n";
 		deep += 3;
 		stream << std::string(deep, ' ') << "Condition - >";
 		if (node->condition) {
 			deep += 3;
-			stream << "\n" << std::string(deep, ' ') << node->condition->handler(this, deep).str() << "\n";
+			stream << "\n" << std::string(deep, ' ') << node->condition->handler(this, deep).str();
+			deep -= 3;
+		} else { stream << " null"; }
+		if (node->code_to_execute) stream << "\n" << std::string(deep, ' ') << node->code_to_execute->handler(this, deep).str();
+		deep -= 3;
+		return stream;
+	}
+
+	// Print while statement node
+	std::stringstream visit(WhileStmtNode* node, int deep) override {
+		std::stringstream stream;
+		stream << "WhileNode ->\n";
+		deep += 3;
+		stream << std::string(deep, ' ') << "Condition - >";
+		if (node->condition) {
+			deep += 3;
+			stream << "\n" << std::string(deep, ' ') << node->condition->handler(this, deep).str();
 			deep -= 3;
 		} else { stream << " null"; }
 		if (node->code_to_execute) stream << "\n" << std::string(deep, ' ') << node->code_to_execute->handler(this, deep).str();

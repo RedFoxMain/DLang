@@ -4,47 +4,60 @@
 #include <sstream>
 #include <vector>
 #include "../Lexer/Lexer.h"
+#include "../../Object/Array/darray.h"
 
-class Int;
-class Float;
-class Str;
-class Id;
-class BinOp;
-class UnOp;
-class FullVarDecl;
-class EmptyVarDecl;
-class ReasignVar;
-class If;
-class BlockOfCode;
+class IntNode;
+class FloatNode;
+class StrNode;
+class ArrayNode;
+class IdNode;
+class BinOpNode;
+class UnOpNode;
+class FullVarDeclNode;
+class EmptyVarDeclNode;
+class ReasignVarNode;
+class IfStmtNode;
+class WhileStmtNode;
+class BlockOfCodeNode;
+// class ParamNode;
+// class FuncCallNode;
 
 // Interface for AstPrinter
 struct PrintVisitor {
-	virtual std::stringstream visit(Int* node, int deep) = 0;
-	virtual std::stringstream visit(Float* node, int deep) = 0;
-	virtual std::stringstream visit(Str* node, int deep) = 0;
-	virtual std::stringstream visit(Id* node, int deep) = 0;
-	virtual std::stringstream visit(UnOp* node, int deep) = 0;
-	virtual std::stringstream visit(BinOp* node, int deep) = 0;
-	virtual std::stringstream visit(EmptyVarDecl* node, int deep) = 0;
-	virtual std::stringstream visit(FullVarDecl* node, int deep) = 0;
-	virtual std::stringstream visit(ReasignVar* node, int deep) = 0;
-	virtual std::stringstream visit(BlockOfCode* node, int deep) = 0;
-	virtual std::stringstream visit(If* node, int deep) = 0;
+	virtual std::stringstream visit(IntNode* node, int deep) = 0;
+	virtual std::stringstream visit(FloatNode* node, int deep) = 0;
+	virtual std::stringstream visit(StrNode* node, int deep) = 0;
+	virtual std::stringstream visit(ArrayNode* node, int deep) = 0;
+	virtual std::stringstream visit(IdNode* node, int deep) = 0;
+	virtual std::stringstream visit(UnOpNode* node, int deep) = 0;
+	virtual std::stringstream visit(BinOpNode* node, int deep) = 0;
+	virtual std::stringstream visit(EmptyVarDeclNode* node, int deep) = 0;
+	virtual std::stringstream visit(FullVarDeclNode* node, int deep) = 0;
+	virtual std::stringstream visit(ReasignVarNode* node, int deep) = 0;
+	virtual std::stringstream visit(BlockOfCodeNode* node, int deep) = 0;
+	virtual std::stringstream visit(IfStmtNode* node, int deep) = 0;
+	virtual std::stringstream visit(WhileStmtNode* node, int deep) = 0;
+	// virtual std::stringstream visit(ParamNode* node, int deep) = 0;
+	// virtual std::stringstream visit(FuncCallNode* node, int deep) = 0;
 };
 
 // Interface for Interpreter
 struct Visitor {
-	virtual void visit(Int* node) = 0;
-	virtual void visit(Float* node) = 0;
-	virtual void visit(Str* node) = 0;
-	virtual void visit(Id* node) = 0;
-	virtual void visit(UnOp* node) = 0;
-	virtual void visit(BinOp* node) = 0;
-	virtual void visit(EmptyVarDecl* node) = 0;
-	virtual void visit(FullVarDecl* node) = 0;
-	virtual void visit(ReasignVar* node) = 0;
-	virtual void visit(BlockOfCode* node) = 0;
-	virtual void visit(If* node) = 0;
+	virtual void visit(IntNode* node) = 0;
+	virtual void visit(FloatNode* node) = 0;
+	virtual void visit(StrNode* node) = 0;
+	virtual void visit(ArrayNode* node) = 0;
+	virtual void visit(IdNode* node) = 0;
+	virtual void visit(UnOpNode* node) = 0;
+	virtual void visit(BinOpNode* node) = 0;
+	virtual void visit(EmptyVarDeclNode* node) = 0;
+	virtual void visit(FullVarDeclNode* node) = 0;
+	virtual void visit(ReasignVarNode* node) = 0;
+	virtual void visit(BlockOfCodeNode* node) = 0;
+	virtual void visit(IfStmtNode* node) = 0;
+	virtual void visit(WhileStmtNode* node) = 0;
+	// virtual void visit(ParamNode* node) = 0;
+	// virtual void visit(FuncCallNode* node) = 0;
 };
 
 struct AST {
@@ -53,139 +66,162 @@ struct AST {
 };
 
 // Node for int
-class Int: public AST {
+class IntNode: public AST {
 public:
 	int value;
 	size_t line, column;
 	TokenType type;
 
 public:
-	Int(Token* token): value(std::stoi(token->value)), line(token->line), column(token->column), type(token->type) {}
+	IntNode(Token* token): value(std::stoi(token->value)), line(token->line), column(token->column), type(token->type) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override{ visitor->visit(this); }
 };
 
 // Node for float
-class Float : public AST {
+class FloatNode: public AST {
 public:
 	float value;
 	size_t line, column;
 	TokenType type;
 
 public:
-	Float(Token* token) : value(std::stof(token->value)), line(token->line), column(token->column), type(token->type) {}
+	FloatNode(Token* token) : value(std::stof(token->value)), line(token->line), column(token->column), type(token->type) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
 
 // Node for string
-class Str: public AST{
+class StrNode: public AST{
 public:
 	std::string value;
 	size_t line, column;
 	TokenType type;
 
 public:
-	Str(Token* token) : value(token->value), line(token->line), column(token->column), type(token->type) {}
+	StrNode(Token* token) : value(token->value), line(token->line), column(token->column), type(token->type) {}
+	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
+	void handler(Visitor* visitor) override { visitor->visit(this); }
+};
+
+// Node for array
+class ArrayNode: public AST{
+public:
+	DArray array;
+
+public:
+	ArrayNode(std::vector<Token*> array): array(array){}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
 
 // Node for identifiers
-class Id: public AST {
+class IdNode: public AST {
 public:
 	Token* identifier;
 
 public:
-	Id(Token* token) : identifier(token) {}
+	IdNode(Token* token) : identifier(token) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
 
 // Node for Unary operations
-class UnOp: public AST {
+class UnOpNode: public AST {
 public:
 	Token* operation;
 	AST* right;
 
 public:
-	UnOp(Token* operation, AST* right) : right(right), operation(operation) {}
+	UnOpNode(Token* operation, AST* expression) : right(expression), operation(operation) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
 
 // Node for Binary operations
-class BinOp: public AST {
+class BinOpNode: public AST {
 public:
 	AST* left;
 	AST* right;
 	Token* operation;
 
 public:
-	BinOp(AST* left, Token* operation, AST* right): left(left), operation(operation), right(right) {}
+	BinOpNode(AST* left, Token* operation, AST* right): left(left), operation(operation), right(right) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
 
 // Node for Variable declaration statement
-class EmptyVarDecl: public AST {
+class EmptyVarDeclNode: public AST {
 public:
 	Token* key_word;
 	Token* type_assign_op;
 	Token* var_type;
-	Id* identifier;
+	IdNode* identifier;
 
 public:
-	EmptyVarDecl(Token* key_word, Id* identifier, Token* type_assign_op, Token* var_type): key_word(key_word), identifier(identifier), type_assign_op(type_assign_op), var_type(var_type) {} // -> key_word id: type;
+	EmptyVarDeclNode(Token* key_word, IdNode* identifier, Token* type_assign_op, Token* var_type): key_word(key_word), identifier(identifier), type_assign_op(type_assign_op), var_type(var_type) {} // -> key_word id: type;
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
 
 // Node for Variable declaration statement
-class FullVarDecl : public AST {
+class FullVarDeclNode: public AST {
 public:
-	EmptyVarDecl* declaration;
+	EmptyVarDeclNode* declaration;
 	Token* assign;
 	AST* expr;
 
 public:
-	FullVarDecl(EmptyVarDecl* declaration, Token* assign, AST* expr) : declaration(declaration), assign(assign), expr(expr) {} // -> key_word id: type = expr;
+	FullVarDeclNode(EmptyVarDeclNode* declaration, Token* assign, AST* expr) : declaration(declaration), assign(assign), expr(expr) {} // -> key_word id: type = expr;
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
 
 // Node for Variable reasigment statement
-class ReasignVar : public AST {
+class ReasignVarNode: public AST {
 public:
-	Id* identifier;
+	IdNode* identifier;
 	Token* assign;
 	AST* expr;
 
 public:
-	ReasignVar(Id* identifier, Token* assign, AST* expr) : identifier(identifier), assign(assign), expr(expr) {} // -> id = expr; || id [+ - * /]= expr;
+	ReasignVarNode(IdNode* identifier, Token* assign, AST* expr) : identifier(identifier), assign(assign), expr(expr) {} // -> id = expr; || id [+ - * /]= expr;
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
 
 // Node for list of statements
-class BlockOfCode : public AST {
+class BlockOfCodeNode: public AST {
 public:
 	std::vector<AST*> list;
 
 public:
-	BlockOfCode(std::vector<AST*> list): list(std::move(list)) {}
+	BlockOfCodeNode(std::vector<AST*> list): list(std::move(list)) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
 
 // Node for if statement
-class If : public AST {
+class IfStmtNode: public AST {
 public:
 	AST* condition;
-	BlockOfCode* code_to_execute;
+	BlockOfCodeNode* code_to_execute;
 
 public:
-	If(AST* condition, BlockOfCode* code_to_execute): condition(condition), code_to_execute(code_to_execute) {}
+	IfStmtNode(AST* condition, BlockOfCodeNode* code_to_execute): condition(condition), code_to_execute(code_to_execute) {}
+	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
+	void handler(Visitor* visitor) override { visitor->visit(this); }
+};
+
+// Node for while statement
+class WhileStmtNode: public AST {
+public:
+	AST* condition;
+	BlockOfCodeNode* code_to_execute;
+
+public:
+	WhileStmtNode(AST* condition, BlockOfCodeNode* code_to_execute): condition(condition), code_to_execute(code_to_execute) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
