@@ -4,9 +4,12 @@
 #include "../Error/error.h"
 
 std::string readFromFile(const std::string& file_name) {
-	std::string temp;
 	std::ifstream file(file_name);
-	if (!file.is_open()) std::cerr << "Cant't find file: " << file_name << std::endl;
+	if (!file.is_open()) {
+		std::cerr << "Cant't find file: " << file_name << std::endl;
+		exit(1);
+	}
+	std::string temp;
 	std::string line;
 	while (std::getline(file, line))
 		temp += line + "\n";
@@ -19,7 +22,7 @@ int main() {
 	ASTPrinter printer;
 
 	try {
-		std::vector<Token*> tokens = lexer.lex(readFromFile("file_path"));
+		std::vector<Token*> tokens = lexer.lex(readFromFile("path_file"));
 		std::vector<AST*> data = parser.parse(tokens);
 		for (AST* ast : data) if (ast) printer.print(ast);
 	}
