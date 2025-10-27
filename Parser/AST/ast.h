@@ -19,7 +19,9 @@ class ReasignVarNode;
 class IfStmtNode;
 class WhileStmtNode;
 class BlockOfCodeNode;
-// class ParamNode;
+class FuncNode;
+class FuncParamNode;
+class IncDecNode;
 // class FuncCallNode;
 
 // Interface for AstPrinter
@@ -37,7 +39,9 @@ struct PrintVisitor {
 	virtual std::stringstream visit(BlockOfCodeNode* node, int deep) = 0;
 	virtual std::stringstream visit(IfStmtNode* node, int deep) = 0;
 	virtual std::stringstream visit(WhileStmtNode* node, int deep) = 0;
-	// virtual std::stringstream visit(ParamNode* node, int deep) = 0;
+	virtual std::stringstream visit(FuncNode* node, int deep) = 0;
+	virtual std::stringstream visit(FuncParamNode* node, int deep) = 0;
+	virtual std::stringstream visit(IncDecNode* node, int deep) = 0;
 	// virtual std::stringstream visit(FuncCallNode* node, int deep) = 0;
 };
 
@@ -56,7 +60,9 @@ struct Visitor {
 	virtual void visit(BlockOfCodeNode* node) = 0;
 	virtual void visit(IfStmtNode* node) = 0;
 	virtual void visit(WhileStmtNode* node) = 0;
-	// virtual void visit(ParamNode* node) = 0;
+	virtual void visit(FuncNode* node) = 0;
+	virtual void visit(FuncParamNode* node) = 0;
+	virtual void visit(IncDecNode* node) = 0;
 	// virtual void visit(FuncCallNode* node) = 0;
 };
 
@@ -73,7 +79,8 @@ public:
 	TokenType type;
 
 public:
-	IntNode(Token* token): value(std::stoi(token->value)), line(token->line), column(token->column), type(token->type) {}
+	IntNode(Token* token)
+		: value(std::stoi(token->value)), line(token->line), column(token->column), type(token->type) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override{ visitor->visit(this); }
 };
@@ -86,7 +93,8 @@ public:
 	TokenType type;
 
 public:
-	FloatNode(Token* token) : value(std::stof(token->value)), line(token->line), column(token->column), type(token->type) {}
+	FloatNode(Token* token) 
+		: value(std::stof(token->value)), line(token->line), column(token->column), type(token->type) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
@@ -99,7 +107,8 @@ public:
 	TokenType type;
 
 public:
-	StrNode(Token* token) : value(token->value), line(token->line), column(token->column), type(token->type) {}
+	StrNode(Token* token) 
+		: value(token->value), line(token->line), column(token->column), type(token->type) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
@@ -110,7 +119,8 @@ public:
 	DArray array;
 
 public:
-	ArrayNode(std::vector<Token*> array): array(array){}
+	ArrayNode(std::vector<Token*> array)
+		: array(array){}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
@@ -121,7 +131,8 @@ public:
 	Token* identifier;
 
 public:
-	IdNode(Token* token) : identifier(token) {}
+	IdNode(Token* token) 
+		: identifier(token) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
@@ -133,7 +144,8 @@ public:
 	AST* right;
 
 public:
-	UnOpNode(Token* operation, AST* expression) : right(expression), operation(operation) {}
+	UnOpNode(Token* operation, AST* expression)
+		: right(expression), operation(operation) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
@@ -146,7 +158,8 @@ public:
 	Token* operation;
 
 public:
-	BinOpNode(AST* left, Token* operation, AST* right): left(left), operation(operation), right(right) {}
+	BinOpNode(AST* left, Token* operation, AST* right)
+		: left(left), operation(operation), right(right) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
@@ -155,12 +168,12 @@ public:
 class EmptyVarDeclNode: public AST {
 public:
 	Token* key_word;
-	Token* type_assign_op;
 	Token* var_type;
 	IdNode* identifier;
 
 public:
-	EmptyVarDeclNode(Token* key_word, IdNode* identifier, Token* type_assign_op, Token* var_type): key_word(key_word), identifier(identifier), type_assign_op(type_assign_op), var_type(var_type) {} // -> key_word id: type;
+	EmptyVarDeclNode(Token* key_word, IdNode* identifier, Token* var_type)
+		: key_word(key_word), identifier(identifier), var_type(var_type) {} // -> key_word id: type;
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
@@ -173,7 +186,8 @@ public:
 	AST* expr;
 
 public:
-	FullVarDeclNode(EmptyVarDeclNode* declaration, Token* assign, AST* expr) : declaration(declaration), assign(assign), expr(expr) {} // -> key_word id: type = expr;
+	FullVarDeclNode(EmptyVarDeclNode* declaration, Token* assign, AST* expr) 
+		: declaration(declaration), assign(assign), expr(expr) {} // -> key_word id: type = expr;
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
@@ -186,7 +200,8 @@ public:
 	AST* expr;
 
 public:
-	ReasignVarNode(IdNode* identifier, Token* assign, AST* expr) : identifier(identifier), assign(assign), expr(expr) {} // -> id = expr; || id [+ - * /]= expr;
+	ReasignVarNode(IdNode* identifier, Token* assign, AST* expr) 
+		: identifier(identifier), assign(assign), expr(expr) {} // -> id = expr; || id [+ - * /]= expr;
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
@@ -197,7 +212,8 @@ public:
 	std::vector<AST*> list;
 
 public:
-	BlockOfCodeNode(std::vector<AST*> list): list(std::move(list)) {}
+	BlockOfCodeNode(std::vector<AST*> list)
+		: list(std::move(list)) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
@@ -209,7 +225,8 @@ public:
 	BlockOfCodeNode* code_to_execute;
 
 public:
-	IfStmtNode(AST* condition, BlockOfCodeNode* code_to_execute): condition(condition), code_to_execute(code_to_execute) {}
+	IfStmtNode(AST* condition, BlockOfCodeNode* code_to_execute)
+		: condition(condition), code_to_execute(code_to_execute) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
@@ -221,7 +238,48 @@ public:
 	BlockOfCodeNode* code_to_execute;
 
 public:
-	WhileStmtNode(AST* condition, BlockOfCodeNode* code_to_execute): condition(condition), code_to_execute(code_to_execute) {}
+	WhileStmtNode(AST* condition, BlockOfCodeNode* code_to_execute)
+		: condition(condition), code_to_execute(code_to_execute) {}
+	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
+	void handler(Visitor* visitor) override { visitor->visit(this); }
+};
+
+// Node for functions statement
+class FuncNode: public AST {
+public:
+	IdNode* func_name;
+	FuncParamNode* params;
+	Token* func_return_type;
+	BlockOfCodeNode* code_to_execute;
+
+public:
+	FuncNode(IdNode* func_name, FuncParamNode* params, Token* func_return_type, BlockOfCodeNode* code_to_execute)
+		: func_name(func_name), params(params), func_return_type(func_return_type), code_to_execute(code_to_execute) {}
+	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
+	void handler(Visitor* visitor) override { visitor->visit(this); }
+};
+
+// Node for functions statement
+class FuncParamNode: public AST {
+public:
+	std::vector<EmptyVarDeclNode*> params;
+
+public:
+	FuncParamNode(std::vector<EmptyVarDeclNode*> params)
+		: params(params) {}
+	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
+	void handler(Visitor* visitor) override { visitor->visit(this); }
+};
+
+// Node for increment, decrement
+class IncDecNode: public AST {
+public:
+	IdNode* identifier;
+	Token* operation;
+
+public:
+	IncDecNode(IdNode* id, Token* operation)
+		: identifier(id), operation(operation) {}
 	std::stringstream handler(PrintVisitor* print_visitor, int deep) override { return print_visitor->visit(this, deep); }
 	void handler(Visitor* visitor) override { visitor->visit(this); }
 };
