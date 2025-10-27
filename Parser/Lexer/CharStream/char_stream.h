@@ -6,6 +6,8 @@
 #include <vector>
 
 class CharStream {
+private:
+	int current_char_pos_;
 public:
 	int line;
 	int column;
@@ -13,7 +15,7 @@ public:
 	char current_char;	
 
 public:
-	CharStream(): line(0), column(-1) {}
+	CharStream(): line(1), current_char_pos_(-1), column(-1) {}
 	void initStream(const std::string& str); // Init stream
 	void advance(int step = 1); // Move to next char
 	void skipComments(); // Skip the comments

@@ -4,18 +4,16 @@
 // Initialize the char stream
 void CharStream::initStream(const std::string& str) {
 	this->code = str;
-	this->line = 1;
-	this->column = -1;
 	advance(); 
 }
 
 // Get next char
 char CharStream::peekNextChar() { 
-	return (column + 1 < code.length()) ? code[column + 1] : '\0'; 
+	return (current_char_pos_ + 1 < code.length()) ? code[current_char_pos_ + 1] : '\0';
 }
 
 char CharStream::peekPrevChar() {
-	return (column - 1 > 0) ? code[column - 1] : '\0';
+	return (current_char_pos_ - 1 > 0) ? code[current_char_pos_ - 1] : '\0';
 }
 
 // Is current char equal ascii code of symbol
@@ -59,9 +57,13 @@ bool CharStream::isEndOfString() {
 
 // Next char
 void CharStream::advance(int step) {
-	column += step;
-	current_char = (column < code.length()) ? code[column] : '\0';
-	if (current_char == '\n') ++line;
+	column += step; 
+	current_char_pos_ += step;
+	current_char = (current_char_pos_ < code.length()) ? code[current_char_pos_] : '\0';
+	if (current_char == '\n') {
+		++line;
+		column = -1;
+	}
 }
 
 // Skip the comments
