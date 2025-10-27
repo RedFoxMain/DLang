@@ -47,7 +47,7 @@ private:
 		stream << "UnOpNode ->\n";
 		deep += 3;
 		stream << std::string(deep, ' ') << "Op(" << node->operation->value << ")\n" << std::string(deep, ' ');
-		stream << "Right(" << node->right->handler(this, deep).str() << ")";
+		stream << "Expr(" << node->right->handler(this, deep).str() << ")";
 		return stream;
 	}
 
@@ -71,7 +71,6 @@ private:
 		stream << std::string(deep, ' ')
 			<< "Key(" << node->key_word->value << ")\n" << std::string(deep, ' ')
 			<< node->identifier->handler(this, deep).str() << "\n" << std::string(deep, ' ')
-			<< "TypeAssign(" << node->type_assign_op->value << ")\n" << std::string(deep, ' ')
 			<< "Type(" << node->var_type->value << ")\n";
 		deep -= 3;
 		return stream;
@@ -106,7 +105,7 @@ private:
 	// Print list of statement
 	std::stringstream visit(BlockOfCodeNode* node, int deep) override {
 		std::stringstream stream;
-		stream << "StmtListNode ->\n";
+		stream << "StmtListNode ->" << (node->list.empty() ? " null\n" : "\n");
 		deep += 3;
 		for (size_t i = 0; i < node->list.size(); ++i) {
 			if (node->list[i]) stream << std::string(deep, ' ') << node->list[i]->handler(this, deep).str();
@@ -136,13 +135,48 @@ private:
 		std::stringstream stream;
 		stream << "WhileNode ->\n";
 		deep += 3;
-		stream << std::string(deep, ' ') << "Condition - >";
+		stream << std::string(deep, ' ') << "Condition ->" << ((node->condition == nullptr) ? " null" : "\n");
 		if (node->condition) {
 			deep += 3;
-			stream << "\n" << std::string(deep, ' ') << node->condition->handler(this, deep).str();
+			stream << std::string(deep, ' ') << node->condition->handler(this, deep).str();
 			deep -= 3;
-		} else { stream << " null"; }
+		}
 		if (node->code_to_execute) stream << "\n" << std::string(deep, ' ') << node->code_to_execute->handler(this, deep).str();
+		deep -= 3;
+		return stream;
+	}
+
+	// Print func node
+	std::stringstream visit(FuncNode* node, int deep) override {
+		std::stringstream stream;
+		stream << "FuncNode ->\n";
+		deep += 3;
+		stream << std::string(deep, ' ') << node->func_name->handler(this, deep).str() << "\n"
+		<< std::string(deep, ' ') << node->params->handler(this, deep).str()
+		<< std::string(deep, ' ') << "RetType(" << node->func_return_type->value << ")\n"
+		<< std::string(deep, ' ') << node->code_to_execute->handler(this, deep).str();
+		deep -= 3;
+		return stream;
+	}
+
+	// Print func parameters node
+	std::stringstream visit(FuncParamNode* node, int deep) override {
+		std::stringstream stream;
+		stream << "FuncParamNode ->" << (node->params.empty() ? " null\n" : "\n");
+		deep += 3;
+		for (EmptyVarDeclNode* node: node->params)
+			if (node) stream << std::string(deep, ' ') << node->handler(this, deep).str();
+		deep -= 3;
+		return stream;
+	}
+
+	// Print Increment Decrement node
+	std::stringstream visit(IncDecNode* node, int deep) override {
+		std::stringstream stream;
+		deep += 3;
+		stream << "IncDecNode\n"
+			<< std::string(deep, ' ') << node->identifier->handler(this, deep).str() << "\n"
+			<< std::string(deep, ' ') << "Op(" << node->operation->value << ")\n";
 		deep -= 3;
 		return stream;
 	}
