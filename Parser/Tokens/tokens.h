@@ -50,7 +50,8 @@ enum TokenType {
 	UNARY_LOGIC_OR, 
 	UNARY_LOGIC_AND, 
 	INCREMENT, 
-	DECREMENT
+	DECREMENT,
+	ANNOTATION
 };
 
 enum TokenCode {
