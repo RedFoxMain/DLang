@@ -70,6 +70,19 @@ Token* Lexer::getSymbol() {
 		token = new Token(stream.line, stream.column - 1, resreved_binary_operation_.at(symbol), symbol);
 		stream.advance(2);
 	}
+	// ++ --
+	else if ((stream.currentCharEqual(TokenCode::PLUS_CODE) && stream.nextCharEqual(TokenCode::PLUS_CODE) ||
+		(stream.currentCharEqual(TokenCode::MINUS_CODE) && stream.nextCharEqual(TokenCode::MINUS_CODE)))) {
+		std::string symbol = std::string(1, stream.current_char) + stream.peekNextChar();
+		token = new Token(stream.line, stream.column - 1, resreved_binary_operation_.at(symbol), symbol);
+		stream.advance(2);
+	}
+	// ->
+	else if (stream.currentCharEqual(TokenCode::MINUS_CODE) && stream.nextCharEqual(TokenCode::GREATER_CODE)) {
+		std::string symbol = std::string(1, stream.current_char) + stream.peekNextChar();
+		token = new Token(stream.line, stream.column - 1, resreved_binary_operation_.at(symbol), symbol);
+		stream.advance(2);
+	}
 	else {
 		token = new Token(stream.line, stream.column - 1, reserved_symbols.at(stream.current_char), std::string(1, stream.current_char));
 		stream.advance();
@@ -87,7 +100,7 @@ Token* Lexer::getToken() {
 			if (stream.currentCharEqual(TokenCode::QUOTE_CODE)) { return getString(); }
 			if (isReservedSymbol(stream.current_char)) { return getSymbol(); }
 			if (stream.isEndOfString()) stream.advance();
-			else { raiseError(std::format("LEXICAL ERROR: Unknown token {} in line {}\n", stream.current_char, stream.line)); }
+			else { raiseError(std::format("LEXICAL ERROR: Unknown token {} in {}:{}\n", stream.current_char, stream.line, stream.column)); }
 			stream.advance();
 		}
 	}

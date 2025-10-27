@@ -21,12 +21,12 @@ public:
 	CharStream stream;
 	std::string file_name;
 
-	std::vector<std::string> reserved_words = { "var", "const", "int", "string", "char", "bool", "float", "while", "for", "if", "else", "func" };
+	std::vector<std::string> reserved_words = { "var", "const", "int", "string", "char", "bool", "float", "void", "while", "for", "if", "else", "func" };
 	std::map<std::string, TokenType> reserved_word_types = {
 		{"var", TokenType::VAR_KEYWORD}, {"const", TokenType::CONST_KEYWORD}, {"while", TokenType::WHILE_KEYWORD}, {"for", TokenType::FOR_KEYWORD}, 
 		{"foreach", TokenType::FOREACH_KEYWORD}, {"if", TokenType::IF_KEYWORD}, {"else", TokenType::ELSE_KEYWORD}, {"func", TokenType::FUNC_KEYWORD}, 
 		{"int", TokenType::VARIABLE_TYPE}, {"float", TokenType::VARIABLE_TYPE}, {"char", TokenType::VARIABLE_TYPE}, {"bool", TokenType::VARIABLE_TYPE},
-		{"string", TokenType::VARIABLE_TYPE}
+		{"string", TokenType::VARIABLE_TYPE}, {"array", TokenType::VARIABLE_TYPE}, {"void", TokenType::VARIABLE_TYPE}
 	};
 	std::map<char, TokenType> reserved_symbols = {
 		{';', TokenType::SEMICOLON}, {':', TokenType::COLON}, {'=', TokenType::EQUAL}, {'.', TokenType::DOT}, {'"', TokenType::QUOTE}, {',', TokenType::COMMA},
@@ -37,7 +37,8 @@ public:
 	std::map<std::string, TokenType> resreved_binary_operation_ = {
 		{">=", TokenType::GREATER_EQUAL}, {"<=", TokenType::LESS_EQUAL}, {"==", TokenType::EQUAL_EQUAL}, {"!=", TokenType::NOT_EQUAL},
 		{"||", TokenType::LOGIC_OR}, {"&&", TokenType::LOGIC_AND}, {"+=", TokenType::PLUS_EQUAL}, {"-=", TokenType::MINUS_EQUAL}, 
-		{"*=", TokenType::MULTIPLY_EQUAL}, {"/=", TokenType::DIVIDE_EQUAL}, {"++", TokenType::INCREMENT}, {"--", TokenType::DECREMENT}
+		{"*=", TokenType::MULTIPLY_EQUAL}, {"/=", TokenType::DIVIDE_EQUAL}, {"++", TokenType::INCREMENT}, {"--", TokenType::DECREMENT},
+		{"->", TokenType::ANNOTATION}
 	};
 
 private:
