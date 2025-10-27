@@ -12,28 +12,32 @@ private:
 
 private:
 	bool match(TokenType type); // Match current token
+	bool matchNext(TokenType type); // Match next token
 	bool isEndOfFile(); // Is current type of token equal EOF
 	void consume(TokenType type); // Apply current token
 	Token* advance(); // Get token
+	Token* getNextToken(); // Get next token
+	Token* getPrevToken(); // Get previous token
 	
 	// Functions for parsing expressions
 	AST* factor();
 	AST* term();
 	AST* expr();
 
-	IdNode* parseVariable(); // Parse variable names
+	IdNode* parseId(); // Parse variable names
 	AST* parseVarDeclaration(); // Parse variable declaration
 	ReasignVarNode* parseVarReasign(); // Parse var reasigment
 	IfStmtNode* parseIf(); // Parse if statement
 	WhileStmtNode* parseWhile(); // Parse if statement
 	BlockOfCodeNode* parseListOfCode(); // Parse list of code
-	ArrayNode* parseArray();
+	ArrayNode* parseArray(); // Parse array
+	FuncNode* parseFunc(); // Parse function
+	FuncParamNode* parseParameters(); // Parse function parameters
+	IncDecNode* parseIncDec(); // Parse increment decrement
 	std::vector<AST*> parseStatement(bool if_block = false); // Main function
 
 public:
 	Parser() = default;
 	std::vector<AST*> parse(std::vector<Token*> token_list);
-	Token* returnCurrToken() { return m_current_token; }
-	Token* getPrevious(); // Get previous token
 };
 #endif // !PARSER_H

@@ -13,10 +13,15 @@ std::vector<AST*> Parser::parseStatement(bool if_block) {
 	std::vector<AST*> ast;
 	while (m_current_token->type != TokenType::END_OF_FILE) {
 		if (if_block && m_current_token->type == RFPAREN) break;
-		if (m_current_token->value == "var" || m_current_token->value == "const") { ast.push_back(parseVarDeclaration()); }
-		if (match(TokenType::ID)) { ast.push_back(parseVarReasign()); }
-		if (m_current_token->value == "if") { consume(TokenType::IF_KEYWORD);  ast.push_back(parseIf()); }
-		if (m_current_token->value == "while") { consume(TokenType::WHILE_KEYWORD);  ast.push_back(parseWhile()); }
+		else if (match(TokenType::ID)) { 
+			if(matchNext(TokenType::INCREMENT) || matchNext(TokenType::DECREMENT)) ast.push_back(parseIncDec());
+			else ast.push_back(parseVarReasign()); 
+		}
+		else if (m_current_token->value == "var" || m_current_token->value == "const") { ast.push_back(parseVarDeclaration()); }
+		else if (m_current_token->value == "if") { ast.push_back(parseIf()); }
+		else if (m_current_token->value == "while") { ast.push_back(parseWhile()); }
+		else if (m_current_token->value == "func") { ast.push_back(parseFunc()); }
+		else raiseError(std::format("SYNTAX ERROR: Unexpected Token near {} in {}:{}\n", getPrevToken()->value, getPrevToken()->line, getPrevToken()->column));
 	}
 	return ast;
 }
@@ -24,6 +29,11 @@ std::vector<AST*> Parser::parseStatement(bool if_block) {
 // Check current token
 bool Parser::match(TokenType type) {
 	if (m_current_token->type != type) { return false; }
+	return true;
+}
+
+bool Parser::matchNext(TokenType type) {
+	if (getNextToken()->type != type) { return false; }
 	return true;
 }
 
@@ -35,19 +45,22 @@ bool Parser::isEndOfFile() {
 // Apply current token
 void Parser::consume(TokenType type) {
 	if (isEndOfFile() || !match(type)) {
-		raiseError(std::format("SYNTAX ERROR: Unexpected Token {} in line: {}\n", m_current_token->value, m_current_token->line));
+		raiseError(std::format("SYNTAX ERROR: Unexpected Token {} in {}:{}\n", m_current_token->value, m_current_token->line, m_current_token->column));
 	}
 	m_current_token = advance();
-}
-
-// Return previous token
-Token* Parser::getPrevious() {
-	return tokens_[(current_token_pos_ > 0) ? current_token_pos_ - 1 : 0 ];
 }
 
 // Get next token
 Token* Parser::advance() {
 	return (current_token_pos_ < tokens_.size()) ? tokens_[++current_token_pos_] : nullptr;
+}
+
+Token* Parser::getNextToken() {
+	return tokens_[((current_token_pos_ + 1) < tokens_.size() ? current_token_pos_ + 1 : tokens_.size())];
+}
+
+Token* Parser::getPrevToken() {
+	return tokens_[((current_token_pos_ - 1) > 0 ? current_token_pos_ - 1 : 0)];
 }
 
 // For math
@@ -70,7 +83,21 @@ AST* Parser::factor() {
 		return ast; 
 	}
 	if (match(TokenType::LSPAREN)) return parseArray();
-	if (match(TokenType::ID)) return parseVariable();
+	if (match(TokenType::ID)) {
+		AST* id = parseId();
+		if (match(TokenType::INCREMENT)) {
+			Token* operation = m_current_token;
+			consume(TokenType::INCREMENT); 
+			return new UnOpNode(operation, id);
+			
+		}
+		if (match(TokenType::DECREMENT)) {
+			Token* operation = m_current_token;
+			consume(TokenType::DECREMENT); 
+			return new UnOpNode(operation, id);
+		}
+		return id;
+	}
 	if (match(TokenType::MINUS)) {  
 		Token* token = m_current_token; 
 		consume(TokenType::MINUS); ast = new UnOpNode(token, factor());
@@ -81,10 +108,10 @@ AST* Parser::factor() {
 		consume(TokenType::PLUS); ast = new UnOpNode(token, factor());
 		return ast;
 	}
-	if (match(TokenType::INCREMENT)) {
+	if (match(TokenType::NOT)) {
 		Token* token = m_current_token;
-		consume(TokenType::INCREMENT); ast = new UnOpNode(token, factor());
-		return ast;
+		consume(TokenType::NOT); 
+		return new UnOpNode(token, factor());
 	}
 	return ast;
 }
@@ -127,7 +154,7 @@ AST* Parser::expr() {
 }
 
 // Parse variable names
-IdNode* Parser::parseVariable() {
+IdNode* Parser::parseId() {
 	IdNode* ast = nullptr;
 	if (match(TokenType::ID)) {
 		ast = new IdNode(m_current_token);
@@ -149,32 +176,32 @@ AST* Parser::parseVarDeclaration() {
 	}
 	
 	// Get vriable name
-	IdNode* id = parseVariable();
-	
-	// Get type assign operator
-	Token* var_assign_op = m_current_token;
+	IdNode* id = parseId();
 	consume(TokenType::COLON);
 	
 	// Get variable type
 	Token* var_type = m_current_token;
+	if (var_type->value == "void") 
+		raiseError(std::format("SYNTAX ERROR: variable type can't be void {}:{}", m_current_token->line, m_current_token->column));
 	consume(TokenType::VARIABLE_TYPE);
 	
 	// If current token is SEMICOLON create empty variable declaration node
 	if (match(TokenType::SEMICOLON)) { 
-		ast = new EmptyVarDeclNode(key_word, id, var_assign_op, var_type);
-	}else { // Else create full variable declaration node
-		Token* assign = m_current_token;
-		consume(TokenType::EQUAL);
-		ast = new FullVarDeclNode(new EmptyVarDeclNode(key_word, id, var_assign_op, var_type), assign, expr());
+		ast = new EmptyVarDeclNode(key_word, id, var_type);
+		consume(TokenType::SEMICOLON);
+		return ast;
 	}
+	// Else create full variable declaration node
+	Token* assign = m_current_token;
+	consume(TokenType::EQUAL);
+	ast = new FullVarDeclNode(new EmptyVarDeclNode(key_word, id, var_type), assign, expr());
 	consume(TokenType::SEMICOLON);
 	return ast;
 }
 
 // Parse var reasigment
 ReasignVarNode* Parser::parseVarReasign() {
-	IdNode* id = parseVariable(); // Get variable name
-	
+	IdNode* id = parseId(); // Get variable name
 	// Get expression assign operator
 	Token* assign = m_current_token;
 	switch (assign->type) {
@@ -198,6 +225,7 @@ BlockOfCodeNode* Parser::parseListOfCode() {
 	return new BlockOfCodeNode(list);
 }
 
+// Parse array
 ArrayNode* Parser::parseArray() {
 	consume(TokenType::LSPAREN);
 	std::vector<Token*> temp;
@@ -213,15 +241,64 @@ ArrayNode* Parser::parseArray() {
 	return new ArrayNode(temp);
 }
 
+// Parse function
+FuncNode* Parser::parseFunc() {
+	consume(TokenType::FUNC_KEYWORD);
+	IdNode* func_name = parseId();
+	FuncParamNode* params = parseParameters();
+	consume(TokenType::ANNOTATION);
+	Token* func_retyrn_type = m_current_token;
+	consume(TokenType::VARIABLE_TYPE);
+	return new FuncNode(func_name, params, func_retyrn_type, parseListOfCode());
+}
+
+// Parse function parametrs
+FuncParamNode* Parser::parseParameters() {
+	consume(TokenType::LRPAREN);
+	std::vector<EmptyVarDeclNode*> params;
+	while (m_current_token) {
+		Token* key_word = m_current_token;
+		switch (key_word->type) {
+			case TokenType::VAR_KEYWORD:
+			case TokenType::CONST_KEYWORD:
+				consume(m_current_token->type);
+		}
+		IdNode* param_name = parseId();
+		consume(TokenType::COLON);
+		Token* var_type = m_current_token;
+		if (var_type->value == "void") 
+			raiseError(std::format("SYNTAX ERROR: function parametr type can't be void {}:{}", m_current_token->line, m_current_token->column));
+		consume(TokenType::VARIABLE_TYPE);
+		params.push_back(new EmptyVarDeclNode(key_word, param_name, var_type));
+		if (match(TokenType::RRPAREN)) break;
+		consume(TokenType::COMMA);
+	}
+	// Parse params
+	consume(TokenType::RRPAREN);
+	return new FuncParamNode(params);
+}
+
+IncDecNode* Parser::parseIncDec() {
+	IdNode* id = parseId();
+	Token* operation = m_current_token;
+	if (match(TokenType::INCREMENT) || match(TokenType::DECREMENT))
+		consume(operation->type);
+	consume(TokenType::SEMICOLON);
+	return new IncDecNode(id, operation);
+}
+
 // Parse if statement
 IfStmtNode* Parser::parseIf() {
+	consume(TokenType::IF_KEYWORD);
 	consume(TokenType::LRPAREN);
 	AST* condition = expr();
 	consume(TokenType::RRPAREN);
 	return new IfStmtNode(condition, parseListOfCode());
 }
 
+// Parse while statement
 WhileStmtNode* Parser::parseWhile() {
+	consume(TokenType::WHILE_KEYWORD);
 	consume(TokenType::LRPAREN);
 	AST* condition = expr();
 	consume(TokenType::RRPAREN);
